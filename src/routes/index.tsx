@@ -52,8 +52,8 @@ const RESPONSAVEIS = ["Ana Souza", "Bruno Lima", "Carla Mendes", "Diego Rocha", 
 
 const STORAGE_KEY = "dfz-prioridades-lotes";
 
-function pick<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
+function pick<T>(arr: readonly T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)] as T;
 }
 
 function gerarDadosLote(numero: string): Lote {
