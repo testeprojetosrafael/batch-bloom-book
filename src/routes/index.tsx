@@ -46,6 +46,7 @@ const GRAFICAS = ["Gráfica Alpha", "Gráfica Beta", "Gráfica Ômega", "Gráfic
 const TIPOS = ["Capa dura", "Brochura", "Espiral", "Pocket"];
 const TRANSPORTADORAS = ["TransLivros", "Rápido Expresso", "LogSul", "CargaFácil"];
 const RESPONSAVEIS = ["Ana Souza", "Bruno Lima", "Carla Mendes", "Diego Rocha", "Equipe Expedição"];
+const SEM_RESPONSAVEL = "__sem_responsavel";
 
 function pick<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)] as T;
@@ -81,6 +82,7 @@ function PainelPage() {
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [filtroGrafica, setFiltroGrafica] = useState("todas");
   const [filtroTransp, setFiltroTransp] = useState("todas");
+  const [filtroResp, setFiltroResp] = useState("todos");
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -93,9 +95,11 @@ function PainelPage() {
         (l) =>
           (filtroStatus === "todos" || l.status === filtroStatus) &&
           (filtroGrafica === "todas" || l.grafica === filtroGrafica) &&
-          (filtroTransp === "todas" || l.transportadora === filtroTransp)
+          (filtroTransp === "todas" || l.transportadora === filtroTransp) &&
+          (filtroResp === "todos" ||
+            (filtroResp === SEM_RESPONSAVEL ? !l.responsavel : l.responsavel === filtroResp))
       ),
-    [lotes, filtroStatus, filtroGrafica, filtroTransp]
+    [lotes, filtroStatus, filtroGrafica, filtroTransp, filtroResp]
   );
 
   function adicionarLote() {
@@ -192,10 +196,19 @@ function PainelPage() {
         </div>
 
         {/* Filtros */}
-        <div className="glass-panel mb-4 grid grid-cols-1 gap-3 rounded-2xl p-4 sm:grid-cols-3">
-          <FiltroSelect label="Status" value={filtroStatus} onChange={setFiltroStatus} todos="Todos os status" opcoes={STATUS} />
+        <div className="glass-panel mb-4 grid grid-cols-1 gap-3 rounded-2xl p-4 sm:grid-cols-2 lg:grid-cols-4">
+          <FiltroSelect label="Status" value={filtroStatus} onChange={setFiltroStatus} valueTodos="todos" todos="Todos os status" opcoes={STATUS} />
           <FiltroSelect label="Gráfica" value={filtroGrafica} onChange={setFiltroGrafica} todos="Todas as gráficas" opcoes={GRAFICAS} />
           <FiltroSelect label="Transportadora" value={filtroTransp} onChange={setFiltroTransp} todos="Todas as transportadoras" opcoes={TRANSPORTADORAS} />
+          <FiltroSelect
+            label="Responsável"
+            value={filtroResp}
+            onChange={setFiltroResp}
+            valueTodos="todos"
+            todos="Todos os responsáveis"
+            opcoes={RESPONSAVEIS}
+            extras={[{ value: SEM_RESPONSAVEL, label: "Sem responsável" }]}
+          />
         </div>
 
         {/* Lista de lotes */}
@@ -303,12 +316,16 @@ function FiltroSelect({
   onChange,
   todos,
   opcoes,
+  valueTodos = "todas",
+  extras = [],
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   todos: string;
   opcoes: string[];
+  valueTodos?: string;
+  extras?: { value: string; label: string }[];
 }) {
   return (
     <label className="flex min-w-0 flex-col gap-1">
@@ -318,7 +335,12 @@ function FiltroSelect({
         onChange={(e) => onChange(e.target.value)}
         className="rounded-lg border border-input bg-background/40 px-3 py-2 text-sm outline-none focus:border-ring"
       >
-        <option value={label === "Status" ? "todos" : "todas"}>{todos}</option>
+        <option value={valueTodos}>{todos}</option>
+        {extras.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
         {opcoes.map((o) => (
           <option key={o} value={o}>
             {o}
