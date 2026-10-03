@@ -46,6 +46,7 @@ const GRAFICAS = ["Gráfica Alpha", "Gráfica Beta", "Gráfica Ômega", "Gráfic
 const TIPOS = ["Capa dura", "Brochura", "Espiral", "Pocket"];
 const TRANSPORTADORAS = ["TransLivros", "Rápido Expresso", "LogSul", "CargaFácil"];
 const RESPONSAVEIS = ["Ana Souza", "Bruno Lima", "Carla Mendes", "Diego Rocha", "Equipe Expedição"];
+const SEM_RESPONSAVEL = "__sem_responsavel";
 
 function pick<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)] as T;
