@@ -1,5 +1,15 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  GRID_COLS,
+  STORAGE_KEY,
+  STORAGE_KEY_FINALIZADOS,
+  carregarJSON,
+  formatarData,
+  statusCor,
+  type Lote,
+  type LoteFinalizado,
+} from "@/lib/lotes";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -31,26 +41,11 @@ export const Route = createFileRoute("/")({
   component: PainelPage,
 });
 
-type Lote = {
-  lote: string;
-  id: string;
-  status: string;
-  grafica: string;
-  tipo: string;
-  transportadora: string;
-  dataAutografo: string;
-  prazo: string | null;
-  responsavel: string | null;
-  exiting?: boolean;
-};
-
 const STATUS = ["Em produção", "Aguardando autógrafo", "Em expedição", "Urgente"];
 const GRAFICAS = ["Gráfica Alpha", "Gráfica Beta", "Gráfica Ômega", "Gráfica Delta"];
 const TIPOS = ["Capa dura", "Brochura", "Espiral", "Pocket"];
 const TRANSPORTADORAS = ["TransLivros", "Rápido Expresso", "LogSul", "CargaFácil"];
 const RESPONSAVEIS = ["Ana Souza", "Bruno Lima", "Carla Mendes", "Diego Rocha", "Equipe Expedição"];
-
-const STORAGE_KEY = "dfz-prioridades-lotes";
 
 function pick<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)] as T;
@@ -72,34 +67,13 @@ function gerarDadosLote(numero: string): Lote {
   };
 }
 
-function formatarData(iso: string | null): string {
-  if (!iso) return "—";
-  const [y, m, d] = iso.split("-");
-  return `${d}/${m}/${y}`;
-}
-
-function statusCor(status: string): string {
-  switch (status) {
-    case "Urgente":
-      return "bg-red-500/15 text-red-300 border-red-400/30";
-    case "Em produção":
-      return "bg-blue-500/15 text-blue-300 border-blue-400/30";
-    case "Em expedição":
-      return "bg-emerald-500/15 text-emerald-300 border-emerald-400/30";
-    default:
-      return "bg-amber-500/15 text-amber-300 border-amber-400/30";
-  }
-}
-
 function PainelPage() {
-  const [lotes, setLotes] = useState<Lote[]>(() => {
-    try {
-      const salvo = localStorage.getItem(STORAGE_KEY);
-      return salvo ? (JSON.parse(salvo) as Lote[]) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [lotes, setLotes] = useState<Lote[]>(() =>
+    carregarJSON<Lote[]>(STORAGE_KEY, [])
+  );
+  const [qtdFinalizados, setQtdFinalizados] = useState<number>(() =>
+    carregarJSON<LoteFinalizado[]>(STORAGE_KEY_FINALIZADOS, []).length
+  );
   const [busca, setBusca] = useState("");
   const [buscando, setBuscando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -146,6 +120,17 @@ function PainelPage() {
   function concluirLote(lote: string) {
     setLotes((prev) => prev.map((l) => (l.lote === lote ? { ...l, exiting: true } : l)));
     setTimeout(() => {
+      const concluido = lotes.find((l) => l.lote === lote);
+      if (concluido) {
+        const { exiting: _exiting, ...dados } = concluido;
+        const finalizados = carregarJSON<LoteFinalizado[]>(STORAGE_KEY_FINALIZADOS, []);
+        const registro: LoteFinalizado = { ...dados, dataConclusao: new Date().toISOString().slice(0, 10) };
+        localStorage.setItem(
+          STORAGE_KEY_FINALIZADOS,
+          JSON.stringify([registro, ...finalizados.filter((f) => f.lote !== lote)])
+        );
+        setQtdFinalizados((q) => q + 1);
+      }
       setLotes((prev) => prev.filter((l) => l.lote !== lote));
     }, 400);
   }
@@ -161,13 +146,24 @@ function PainelPage() {
     <div className="app-backdrop min-h-screen px-4 py-6 sm:px-8">
       <div className="mx-auto max-w-6xl">
         {/* Cabeçalho */}
-        <header className="mb-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">
-            Produção & Expedição
-          </p>
-          <h1 className="mt-1 text-2xl font-extrabold tracking-tight sm:text-3xl">
-            Painel de Controle de Prioridades <span className="text-primary">DFZ</span>
-          </h1>
+        <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+              Produção &amp; Expedição
+            </p>
+            <h1 className="mt-1 text-2xl font-extrabold tracking-tight sm:text-3xl">
+              Painel de Controle de Prioridades <span className="text-primary">DFZ</span>
+            </h1>
+          </div>
+          <Link
+            to="/finalizados"
+            className="glass-panel flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-colors hover:bg-accent"
+          >
+            Lotes finalizados
+            <span className="rounded-full bg-primary/20 px-2 py-0.5 text-xs font-bold text-primary">
+              {qtdFinalizados}
+            </span>
+          </Link>
         </header>
 
         {/* Barra de inserção */}
@@ -217,7 +213,7 @@ function PainelPage() {
         ) : (
           <div className="flex flex-col gap-2">
             {/* Cabeçalho da tabela (desktop) */}
-            <div className="hidden grid-cols-[1.2fr_0.7fr_1fr_1fr_0.8fr_1fr_1fr_1fr_auto] gap-3 px-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground lg:grid">
+            <div className={`hidden gap-3 px-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground lg:grid lg:items-center ${GRID_COLS}`}>
               <span>Lote</span>
               <span>ID</span>
               <span>Status</span>
@@ -225,8 +221,8 @@ function PainelPage() {
               <span>Tipo</span>
               <span>Transportadora</span>
               <span>Autógrafo</span>
-              <span>Prazo / Resp.</span>
-              <span />
+              <span>Prazo de conclusão</span>
+              <span className="w-[7rem] text-right">Ação</span>
             </div>
             {lotesFiltrados.map((l) => (
               <div
@@ -234,7 +230,7 @@ function PainelPage() {
                 onClick={() => !l.exiting && setSelecionado(l)}
                 className={`glass-row cursor-pointer rounded-xl px-4 py-3 ${l.exiting ? "row-exit" : "row-enter"}`}
               >
-                <div className="grid grid-cols-2 gap-x-3 gap-y-2 lg:grid-cols-[1.2fr_0.7fr_1fr_1fr_0.8fr_1fr_1fr_1fr_auto] lg:items-center lg:gap-3">
+                <div className={`grid grid-cols-2 gap-x-3 gap-y-2 lg:items-center lg:gap-3 ${GRID_COLS}`}>
                   <div className="min-w-0">
                     <span className="text-[10px] font-semibold uppercase text-muted-foreground lg:hidden">Lote</span>
                     <p className="truncate text-base font-bold">{l.lote}</p>
@@ -265,7 +261,7 @@ function PainelPage() {
                     <p className="truncate text-sm">{formatarData(l.dataAutografo)}</p>
                   </div>
                   <div className="min-w-0">
-                    <span className="text-[10px] font-semibold uppercase text-muted-foreground lg:hidden">Prazo / Responsável</span>
+                    <span className="text-[10px] font-semibold uppercase text-muted-foreground lg:hidden">Prazo de conclusão</span>
                     <p className="truncate text-sm font-semibold text-primary">
                       {l.prazo ? formatarData(l.prazo) : "Sem prazo"}
                     </p>
@@ -362,7 +358,7 @@ function ModalConfig({
         <div className="mt-5 flex flex-col gap-4">
           <label className="flex flex-col gap-1">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Prazo de entrega
+              Prazo para o lote ficar pronto
             </span>
             <input
               type="date"
