@@ -1,14 +1,16 @@
-# Welcome to your Lovable project
+# Book Batch Brilliance
+
+Estou desenvovlvendo um app de gestão de lotes com prioridade dentro de uma produtora de livros, vou te passar oque eu tenho e quero que você olhe pegue oque faça sentido e contrua um modelo em cima ( está em anexo) você esta bem livre isso é som um exemplo
 
 This project was built with [Lovable](https://lovable.dev).
 
 ## Build with Lovable
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/a714a4f3-eed3-4d77-9e7c-5695cb6f7cf7).
 
 - **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+- **Stay in sync**: every change made in Lovable is committed straight to this repository.
+- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 
@@ -20,10 +22,3 @@ cd <repository-name>
 npm i
 npm run dev
 ```
-
-## Built with
-
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
