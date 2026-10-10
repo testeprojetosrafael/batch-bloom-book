@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as FinalizadosRouteImport } from './routes/finalizados'
+import { Route as PdpRouteImport } from './routes/pdp'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +23,40 @@ const FinalizadosRoute = FinalizadosRouteImport.update({
   path: '/finalizados',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PdpRoute = PdpRouteImport.update({
+  id: '/pdp',
+  path: '/pdp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/finalizados': typeof FinalizadosRoute
+  '/pdp': typeof PdpRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/finalizados': typeof FinalizadosRoute
+  '/pdp': typeof PdpRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/finalizados': typeof FinalizadosRoute
+  '/pdp': typeof PdpRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/finalizados'
+  fullPaths: '/' | '/finalizados' | '/pdp'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/finalizados'
-  id: '__root__' | '/' | '/finalizados'
+  to: '/' | '/finalizados' | '/pdp'
+  id: '__root__' | '/' | '/finalizados' | '/pdp'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   FinalizadosRoute: typeof FinalizadosRoute
+  PdpRoute: typeof PdpRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FinalizadosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pdp': {
+      id: '/pdp'
+      path: '/pdp'
+      fullPath: '/pdp'
+      preLoaderRoute: typeof PdpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   FinalizadosRoute: FinalizadosRoute,
+  PdpRoute: PdpRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
