@@ -65,7 +65,7 @@ function FinalizadosPage() {
             </p>
           </div>
           <Link
-            to="/"
+            to="/pdp"
             className="rounded-xl border border-glass-border bg-glass px-5 py-2.5 text-sm font-bold transition-colors hover:bg-accent"
           >
             ← Voltar ao painel
